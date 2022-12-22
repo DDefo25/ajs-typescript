@@ -12,7 +12,6 @@ test('new card should be empty', () => {
 
 test('cart should add new Movie', () => {
   const result = [{
-    item: {
       country: "США",
       cover: "https://github.com/netology-code/ajs-homeworks/raw/ajs8/typescript/pic/avengers.png",
       duration: 137,
@@ -24,7 +23,6 @@ test('cart should add new Movie', () => {
       price: 1225,
       tagline: "Avengers Assemble!",
       year: 2012
-    }, amount: 1, 
   }]
   const cart = new Cart();  
   cart.add(new Movie(1001, 'Мстители', 'The Avengers', 2012, 'США', 'Avengers Assemble!', ['фантастика', 'боеквик', 'фэнтези', 'приключения'], 137, true, 'https://github.com/netology-code/ajs-homeworks/raw/ajs8/typescript/pic/avengers.png', 1225));
@@ -54,7 +52,6 @@ test('sumDiscount should return total price of cart with discount', () => {
 
 test('remove should delete item from cart', () => {
   const result = [{
-    item: {
       country: "США",
       cover: "https://github.com/netology-code/ajs-homeworks/raw/ajs8/typescript/pic/avengers.png",
       duration: 137,
@@ -66,14 +63,11 @@ test('remove should delete item from cart', () => {
       price: 1225,
       tagline: "Avengers Assemble!",
       year: 2012
-    }, amount: 1 
   }, {
-    item: {
       id: 1004,
       name: "iPhone 47",
       price: 900,
       numerous: true,
-    }, amount: 8 
   }]
 
   const cart = new Cart();  
@@ -93,5 +87,18 @@ test('remove should delete item from cart', () => {
   const removing = () => {
     cart.remove(1008);
   }
-  expect(removing).toThrowError(`Продукт с id ${1008} не найден в корзине`)
+  expect(removing).toThrowError(`Продукт c id 1008 не найден в корзине`)
 })
+
+test.each([
+  ["get amount item when it is in Cart", 1004, 10],
+  ["get amount item when it is NOT in Cart", 1008, 0],
+])(
+  ("test %s with %s"),
+    (_, id, result) => {
+      const cart = new Cart();
+      cart.add(new Smartphone(1004, 'iPhone 47', 900), 10);
+      expect(cart.getAmount(id)).toBe(result)
+    },
+)
+

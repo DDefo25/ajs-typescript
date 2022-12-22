@@ -1,30 +1,42 @@
 import Buyable from '../domain/Buyable';
-import CartItem from '../domain/CartItem';
 
 export default class Cart {
-    private _items: CartItem[] = [];
+    private _items: Buyable[] = [];
+    amounts = new WeakMap();
 
     add( item: Buyable, amount: number = 1 ): void {
         const inCart = this.getCartItem( item.id );
 
         if (item.numerous && inCart) {
-            inCart.amount += amount;
-        } else {
-            this._items.push({ item, amount: item.numerous ? amount : 1 })
+            const amountInCart = this.getAmount(item.id);
+            this.amounts.set( inCart, amountInCart + amount );
+        } else if (!inCart) {
+            this._items.push( item );
+            this.amounts.set( item, item.numerous ? amount : 1 );
         }
     }
 
-    get items(): CartItem[] {
+    get items(): Buyable[] {
         return [...this._items]; 
     }
 
-    getCartItem( id: number ): CartItem | undefined {
-        const inCart = this._items.find(cartItem => cartItem.item.id === id);
-        return inCart;
+    getAmount( id: number ): number {
+        const inCart = this.getCartItem( id );
+        if (!inCart) {
+            return 0;
+        } else {
+            return this.amounts.get( inCart );
+        }
+    }
+
+    getCartItem( id: number ): Buyable | undefined {
+        return this._items.find( item => item.id === id );
     }
 
     sum(): number {
-        return [...this._items].reduce((sum, current) => sum + (current.item.price * current.amount), 0)
+        return [...this._items].reduce((sum, current) => {
+            return sum + (current.price * this.getAmount(current.id));
+            }, 0);
     }
 
     sumDiscount( discount: number ): number {
@@ -35,13 +47,15 @@ export default class Cart {
         const inCart = this.getCartItem( id );
 
         if (!inCart) {
-            throw new Error (`Продукт с id ${id} не найден в корзине`)
+            throw new Error (`Продукт c id ${id} не найден в корзине`);
         }
 
-        if (inCart.amount - amount > 0) {
-            inCart.amount -= amount;
+        const amountInCart = this.getAmount(id);
+
+        if (amountInCart - amount <= 0) {
+            this._items.splice(this._items.findIndex(item => item.id === id), 1);
         } else {
-            this._items.splice(this._items.findIndex(cartItem => cartItem.item.id === id), 1);
+            this.amounts.set(inCart, amountInCart - amount);
         }
     }
 }
